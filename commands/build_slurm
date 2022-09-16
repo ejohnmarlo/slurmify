@@ -1,0 +1,36 @@
+#/bin/bash
+echo "Build Slurm"
+SLURM_URL="https://download.schedmd.com/slurm/slurm-22.05.3.tar.bz2"
+SLURM_VERSION="slurm-22.05.3"
+
+echo "Build Slurm from source. This script will produce .deb installer located at ~"
+echo "Change SLURM's source URL above to the latest version"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes ) break;;
+        No ) exit;;
+    esac
+done
+
+echo "Installing prerequisites on $1..."
+sleep 1
+ssh $1 "apt update; apt -y install git gcc make build-essential libpam0g-dev libssl-dev ruby ruby-dev; apt autoremove -y"
+echo "Installing fpm..."
+sleep 1
+ssh $1 "gem install fpm"
+
+echo "Downloading and extracting slurm..."
+sleep 1
+ssh $1 "wget $SLURM_URL"
+ssh $1 "tar xvjf $SLURM_VERSION.tar.bz2"
+
+echo "Building slurm..."
+sleep 1
+ssh $1 "./$SLURM_VERSION/configure --prefix=/tmp/slurm-build --sysconfdir=/etc/slurm --enable-pam --with-pam_dir=/lib/x86_64-linux-gnu/security/ --without-shared-libslurm"
+ssh $1 "make"
+ssh $1 "make contrib"
+ssh $1 "make install"
+
+echo "Building .deb using fpm..."
+sleep 1
+ssh $1 "fpm -s dir -t deb -v 1.0 -n $SLURM_VERSION --prefix=/usr -C /tmp/slurm-build ."

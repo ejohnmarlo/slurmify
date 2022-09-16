@@ -1,0 +1,26 @@
+#/bin/bash
+
+
+search_dir="commands"
+#Check if input is correct
+if [ "$1" == "list" ]; then
+   echo "List of commands:"
+   (cd $search_dir && ls)
+   exit
+fi
+
+if [ -z "$1" ] && [ -z "$2" ]; then
+   echo "Format invalid! Enter slurmify [command] [target]"
+   echo "List of commands: slurmify list"
+   exit
+fi
+
+#Check in host is reachable
+ssh -q $2 exit
+if [ $? != 0 ]; then
+   echo "$2 is not reachable. Make sure the host is running or check your .ssh/config file"
+   exit
+fi
+
+
+./commands/$1 $2
