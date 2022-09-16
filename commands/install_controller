@@ -1,7 +1,5 @@
 #/bin/bash
 echo "Install Slurm on Controller"
-SLURM_URL="https://download.schedmd.com/slurm/slurm-22.05.3.tar.bz2"
-SLURM_VERSION="slurm-22.05.3"
 SLURMDBPASS=slurmdbpass
 
 echo "This will install slurm on the controller node"
@@ -27,8 +25,42 @@ echo "Installing and starting MariaDB for SLURM data..."
 #ssh $1 "apt update; apt -y install libmysqlclient-dev mariadb-server; apt autoremove -y"
 #ssh $1 "systemctl enable --now mariadb"
 echo "Setting up database..."
+#sleep 1
+#ssh $1 "mysql -u root -e 'create database slurm_acct_db;'"
+#ssh $1 "mysql -u root -e 'create user 'slurm'@'localhost';'"
+#ssh $1 "mysql -u root -e 'set password for 'slurm'@'localhost' = password('\''$SLURMDBPASS'\'');'"
+#ssh $1 "mysql -u root -e 'grant usage on *.* to 'slurm'@'localhost';'"
+#ssh $1 "mysql -u root -e 'grant all privileges on slurm_acct_db.* to 'slurm'@'localhost';'"
+#ssh $1 "mysql -u root -e 'flush privileges;'"
+
+echo "Choose slurm deb..."
+#sleep 2
+#ssh $1 "find . -type f -name "*.deb""
+#read -p "Enter the SLURM version you want to install [ex. slurm-22.05.3_1.0_amd64.deb] : " SLURMDEB
+SLURMDEB="slurm-22.05.3_1.0_amd64.deb"
+
+echo "Installing slurm deb..."
+sleep 2
+ssh $1 "dpkg -i $SLURMDEB"
+
+echo "Making slurm directories..."
 sleep 1
-ssh $1 "mysql -u root -e 'create database slurm_acct_db;'"
-ssh $1 "mysql -u root -e 'create user 'slurm'@'localhost';'"
-ssh $1 "mysql -u root -e 'set password for 'slurm'@'localhost' = password('\''$SLURMDBPASS'\'');'"
+ssh $1 "mkdir -p /etc/slurm /etc/slurm/prolog.d /etc/slurm/epilog.d /var/spool/slurm/ctld /var/spool/slurm/d /var/log/slurm"
+ssh $1 "sudo chown slurm /var/spool/slurm/ctld /var/spool/slurm/d /var/log/slurm"
+
+echo "Copying slurmctld and slurmdbd services..."
+sleep 1
+scp config/services/slurmdbd.service /etc/systemd/system/
+scp config/services/slurmctld.service /etc/systemd/system/
+
+echo "Copying slurmdbd.conf..."
+sleep 1
+scp config/slurmdbd.conf /etc/slurm/
+ssh $1 "chmod 600 /etc/slurm/slurmdbd.conf"
+ssh $1 "chown slurm:slurm /etc/slurm/slurmdbd.conf"
+
+echo "Restart slurm services..."
+ssh $1 "systemctl enable --now slurmdbd"
+ssh $1 "systemctl enable --now slurmctld"
+
 
