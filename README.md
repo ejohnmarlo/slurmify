@@ -21,7 +21,7 @@ Add entries
 ## Modify hostname for all node
 ```sh
 sudo hostnamectl set-hostname samsung-slurm-controller
-sudo hostnamectl set-hostname samsung-slurm-node01
+sudo hostnamectl set-hostname samsung-s1
 ```
 
 ## Modify `.ssh/config` for controller node
@@ -31,7 +31,7 @@ Host controller
   User root
   Port 22
 
-Host node01
+Host samsung-s1
   Hostname 10.158.20.11
   User root
   Port 22
