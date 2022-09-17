@@ -14,7 +14,7 @@ done
 
 echo "Installing prerequisites on $1..."
 sleep 1
-ssh $1 "apt update; apt -y install git gcc make build-essential libpam0g-dev libssl-dev ruby ruby-dev; apt autoremove -y"
+ssh $1 "apt update; apt install -y git gcc make build-essential ruby ruby-dev libmunge-dev libmunge2 munge hwloc libhwloc-dev hdf5-tools libhdf5-dev man2html freeipmi libfreeipmi-dev libibmad-dev libibumad-dev lua5.3 liblua5.3-dev mariadb-server libmariadb-dev libpam0g libpam0g-dev numactl libnuma-dev readline-common libreadline-dev rrdtool librrd-dev gir1.2-gtk-2.0 libssl-dev"
 echo "Installing fpm..."
 sleep 1
 ssh $1 "gem install fpm"
@@ -28,7 +28,9 @@ echo "Building slurm..."
 sleep 1
 ssh $1 "./$SLURM_VERSION/configure --prefix=/tmp/slurm-build --sysconfdir=/etc/slurm --enable-pam --with-pam_dir=/lib/x86_64-linux-gnu/security/ --without-shared-libslurm"
 ssh $1 "make"
+sleep 1
 ssh $1 "make contrib"
+sleep 1
 ssh $1 "make install"
 
 echo "Building .deb using fpm..."

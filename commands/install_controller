@@ -12,31 +12,31 @@ done
 
 echo "Installing and starting munge on $1..."
 #sleep 2
-#ssh $1 "apt update; apt -y install libmunge-dev libmunge2 munge; apt autoremove -y"
-#ssh $1 "systemctl enable --now munge"
+ssh $1 "apt update; apt -y install libmunge-dev libmunge2 munge; apt autoremove -y"
+ssh $1 "systemctl enable --now munge"
 echo "Testing munge..."
-#sleep 1
-#ssh $1 "munge -n | unmunge"
+sleep 1
+ssh $1 "munge -n | unmunge"
 
 echo "Preparing database for slurm..."
-#sleep 2
+sleep 2
 echo "Installing and starting MariaDB for SLURM data..."
-#sleep 1
-#ssh $1 "apt update; apt -y install libmysqlclient-dev mariadb-server; apt autoremove -y"
-#ssh $1 "systemctl enable --now mariadb"
+sleep 1
+ssh $1 "apt update; apt -y install libmariadbd-dev mariadb-server; apt autoremove -y"
+ssh $1 "systemctl enable --now mariadb"
 echo "Setting up database..."
 #sleep 1
-#ssh $1 "mysql -u root -e 'create database slurm_acct_db;'"
-#ssh $1 "mysql -u root -e 'create user 'slurm'@'localhost';'"
-#ssh $1 "mysql -u root -e 'set password for 'slurm'@'localhost' = password('\''$SLURMDBPASS'\'');'"
-#ssh $1 "mysql -u root -e 'grant usage on *.* to 'slurm'@'localhost';'"
-#ssh $1 "mysql -u root -e 'grant all privileges on slurm_acct_db.* to 'slurm'@'localhost';'"
-#ssh $1 "mysql -u root -e 'flush privileges;'"
+ssh $1 "mysql -u root -e 'create database slurm_acct_db;'"
+ssh $1 "mysql -u root -e 'create user 'slurm'@'localhost';'"
+ssh $1 "mysql -u root -e 'set password for 'slurm'@'localhost' = password('\''$SLURMDBPASS'\'');'"
+ssh $1 "mysql -u root -e 'grant usage on *.* to 'slurm'@'localhost';'"
+ssh $1 "mysql -u root -e 'grant all privileges on slurm_acct_db.* to 'slurm'@'localhost';'"
+ssh $1 "mysql -u root -e 'flush privileges;'"
 
 echo "Choose slurm deb..."
-#sleep 2
-#ssh $1 "find . -type f -name "*.deb""
-#read -p "Enter the SLURM version you want to install [ex. slurm-22.05.3_1.0_amd64.deb] : " SLURMDEB
+sleep 2
+ssh $1 "find . -type f -name "*.deb""
+read -p "Enter the SLURM version you want to install [ex. slurm-22.05.3_1.0_amd64.deb] : " SLURMDEB
 SLURMDEB="slurm-22.05.3_1.0_amd64.deb"
 
 echo "Installing slurm deb..."
@@ -52,15 +52,23 @@ echo "Copying slurmctld and slurmdbd services..."
 sleep 1
 scp config/services/slurmdbd.service /etc/systemd/system/
 scp config/services/slurmctld.service /etc/systemd/system/
+ssh $1 "chown root:root /etc/systemd/system/slurm*.service" 
 
-echo "Copying slurmdbd.conf..."
+echo "Copying configuration files..."
 sleep 1
 scp config/slurmdbd.conf /etc/slurm/
+scp config/slurm.conf /etc/slurm/
+scp config/cgroup.conf /etc/slurm/
+scp config/cgroup_allowed_devices_file.conf /etc/slurm/
+
+ssh $1 "chmod 644 /etc/slurm/*.conf"
+ssh $1 "chown slurm:root /etc/slurm/*.conf"
 ssh $1 "chmod 600 /etc/slurm/slurmdbd.conf"
-ssh $1 "chown slurm:slurm /etc/slurm/slurmdbd.conf"
+
 
 echo "Restart slurm services..."
+ssh $1 "systemctl daemon-reload"
 ssh $1 "systemctl enable --now slurmdbd"
 ssh $1 "systemctl enable --now slurmctld"
-
-
+ssh $1 "systemctl restart slurmdbd"
+ssh $1 "systemctl restart slurmctld"
