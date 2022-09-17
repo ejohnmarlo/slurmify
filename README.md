@@ -15,7 +15,7 @@ sudo adduser -u 1002 slurm --disabled-password --gecos ""
 Add entries
 ```
 10.158.20.10 samsung-slurm-controller
-10.158.20.11 samsung-slurm-node01
+10.158.20.11 samsung-s1
 ```
 
 ## Modify hostname for all node
