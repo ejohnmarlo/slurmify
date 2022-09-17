@@ -1,0 +1,34 @@
+#/bin/bash
+echo "remove_slurm"
+echo "Do you wish to remove slurm on $1? This will purge slurm\* in your system"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes ) break;;
+        No ) exit;;
+    esac
+done
+
+echo "Removing Ceph on $1..."
+sleep 1
+
+echo -n "Stopping slurm daemons..."
+sleep 1 && echo "done"
+ssh $1 "systemctl stop slurmctld && systemctl disable slurmctld"
+ssh $1 "systemctl stop slurmdbd && systemctl disable slurmdbd"
+ssh $1 "systemctl stop slurmd && systemctl disable slurmd"
+
+ssh $1 "kill -9 $(pidof slurmctld)"
+ssh $1 "kill -9 $(pidof slurmdbd)"
+ssh $1 "kill -9 $(pidof slurmdbd)"
+
+echo -n "Removing directories..."
+sleep 2 && echo "done"
+ssh $1 "rm -rf /etc/slurm* /var/spool/slurm* /var/log/slurm*"
+
+echo -n "Removing slurm packages..."
+sleep 2 && echo "done"
+ssh $1 "apt purge -y slurm\*"
+#ssh $1 "apt -y autoremove"
+
+echo " "
+echo "slurm removed. Please restart $1"

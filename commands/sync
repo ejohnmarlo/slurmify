@@ -1,0 +1,28 @@
+#/bin/bash
+
+echo "This will sync config files to all compute nodes"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes ) break;;
+        No ) exit;;
+    esac
+done
+
+#cat /etc/hosts | grep -i '.' | grep -v '#\|:' | awk '{ print $2}' | awk '! /localhost/' | xargs -I{} ssh {} "ip addr"
+cat /etc/hosts | grep -i '.' | grep -v '#\|:' | awk '{ print $2}' | awk '! /localhost/' > ~/hosts
+while IFS= read -r dest; do 
+	echo "Syncing $dest..."
+	scp /etc/hosts $dest:/etc/hosts #Change /etc/hosts from "127.0.0.1 hostname" to "127.0.0.1 localhost" 
+	scp /etc/munge/munge.key $dest:/etc/munge/
+        scp /etc/slurm/gres.conf $dest:/etc/slurm/
+	scp /etc/slurm/slurm.conf $dest:/etc/slurm/
+	scp /etc/slurm/cgroup_allowed_devices_file.conf $dest:/etc/slurm/
+	scp /etc/slurm/cgroup.conf $dest:/etc/slurm/
+
+	echo "Restarting slurm services..."
+	ssh -n $dest "systemctl daemon-reload"
+	ssh -n $dest "systemctl restart slurmd"
+	ssh -n $dest "systemctl restart slurmctld"
+	ssh -n $dest "systemctl restart slurmdbd"
+
+done < ~/hosts

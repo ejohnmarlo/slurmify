@@ -1,0 +1,55 @@
+#/bin/bash
+echo "Install Slurm on $1"
+
+echo "This will install slurm on $1. Make sure a controller and .deb exists"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes ) break;;
+        No ) exit;;
+    esac
+done
+
+echo "Installing and starting munge on $1..."
+sleep 2
+ssh $1 "apt update; apt -y install libmunge-dev libmunge2 munge hwloc libhwloc-dev; apt autoremove -y"
+echo "Transferring munge.key from controller to $1..."
+sleep 1
+scp /etc/munge/munge.key $1:/etc/munge/
+ssh $1 "systemctl enable --now munge"
+ssh $1 "systemctl restart munge"
+echo "Testing munge..."
+sleep 1
+ssh $1 "munge -n | unmunge"
+echo "Testing munge from controller to $1..."
+sleep 2
+munge -n | ssh $1 unmunge
+
+echo "Transferring .deb from controller to $1..."
+ssh $1 "find . -type f -name "*.deb""
+read -p "Enter the SLURM version you want to transfer to $1 [ex. slurm-22.05.3_1.0_amd64.deb] : " SLURMDEB
+SLURMDEB="slurm-22.05.3_1.0_amd64.deb"
+scp /root/$SLURMDEB $1:.
+
+echo "Installing slurm..."
+ssh $1 "dpkg -i $SLURMDEB"
+
+echo "Creating slurm directories..."
+ssh $1 "mkdir -p /etc/slurm /etc/slurm/prolog.d /etc/slurm/epilog.d /var/spool/slurm/d"
+ssh $1 "chown slurm /var/spool/slurm/d"
+
+echo "Copying slurm configurations from controller to $1..."
+sleep 1
+scp /etc/slurm/slurm.conf $1:/etc/slurm/
+scp /etc/slurm/gres.conf $1:/etc/slurm/
+scp /etc/slurm/cgroup_allowed_devices_file.conf $1:/etc/slurm/
+scp /etc/slurm/cgroup.conf $1:/etc/slurm/
+
+echo "Transferring slurmd daemon..."
+sleep 1
+scp config/slurmd.service $1:/etc/systemd/system/
+ssh $1 "chown root:root /etc/systemd/system/slurmd.service"
+
+echo "Restart slurm services..."
+ssh $1 "systemctl daemon-reload"
+ssh $1 "systemctl enable --now slurmd"
+ssh $1 "systemctl restart slurmd"
