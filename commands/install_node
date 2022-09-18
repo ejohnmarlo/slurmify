@@ -46,10 +46,16 @@ scp /etc/slurm/cgroup.conf $1:/etc/slurm/
 
 echo "Transferring slurmd daemon..."
 sleep 1
-scp config/slurmd.service $1:/etc/systemd/system/
+scp config/services/slurmd.service $1:/etc/systemd/system/
 ssh $1 "chown root:root /etc/systemd/system/slurmd.service"
 
 echo "Restart slurm services..."
+sleep 1
 ssh $1 "systemctl daemon-reload"
 ssh $1 "systemctl enable --now slurmd"
 ssh $1 "systemctl restart slurmd"
+
+echo "Switching node to idle state..."
+sleep 1
+ssh $1 "scontrol update nodename=$1 state=idle"
+ssh $1 "sinfo"

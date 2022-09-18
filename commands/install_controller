@@ -12,7 +12,7 @@ done
 
 echo "Installing and starting munge on $1..."
 #sleep 2
-ssh $1 "apt update; apt -y install libmunge-dev libmunge2 munge; apt autoremove -y"
+ssh $1 "apt update; apt -y install libmunge-dev libmunge2 munge hwloc libhwloc-dev; apt autoremove -y"
 ssh $1 "systemctl enable --now munge"
 echo "Testing munge..."
 sleep 1
@@ -58,6 +58,7 @@ echo "Copying configuration files..."
 sleep 1
 scp config/slurmdbd.conf /etc/slurm/
 scp config/slurm.conf /etc/slurm/
+scp config/gres.conf /etc/slurm/
 scp config/cgroup.conf /etc/slurm/
 scp config/cgroup_allowed_devices_file.conf /etc/slurm/
 
