@@ -1,7 +1,7 @@
 #/bin/bash
-echo "Install Slurm on $1"
+echo "Install Slurm (as client) on $1"
 
-echo "This will install slurm on $1. Make sure a controller and .deb exists"
+echo "This will install slurm (as client) on $1. Make sure a controller and .deb exists"
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) break;;
@@ -45,18 +45,18 @@ scp /etc/slurm/gres.conf $1:/etc/slurm/
 scp /etc/slurm/cgroup_allowed_devices_file.conf $1:/etc/slurm/
 scp /etc/slurm/cgroup.conf $1:/etc/slurm/
 
-echo "Transferring slurmd daemon..."
-sleep 1
-scp config/services/slurmd.service $1:/etc/systemd/system/
-ssh $1 "chown root:root /etc/systemd/system/slurmd.service"
+#echo "Transferring slurmd daemon..."
+#sleep 1
+#scp config/services/slurmd.service $1:/etc/systemd/system/
+#ssh $1 "chown root:root /etc/systemd/system/slurmd.service"
 
-echo "Restart slurm services..."
-sleep 1
-ssh $1 "systemctl daemon-reload"
-ssh $1 "systemctl enable --now slurmd"
-ssh $1 "systemctl restart slurmd"
+#echo "Restart slurm services..."
+#sleep 1
+#ssh $1 "systemctl daemon-reload"
+#ssh $1 "systemctl enable --now slurmd"
+#ssh $1 "systemctl restart slurmd"
 
-echo "Switching node to idle state..."
-sleep 1
-ssh $1 "scontrol update nodename=$1 state=idle"
+#echo "Switching node to idle state..."
+#sleep 1
+#ssh $1 "scontrol update nodename=$1 state=idle"
 ssh $1 "sinfo"

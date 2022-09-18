@@ -24,6 +24,8 @@ while IFS= read -r dest; do
 	ssh -nq $dest "test -f /etc/systemd/system/slurmd.service" && ssh -nq $dest "systemctl restart slurmd" && echo "slurmd restarted"
 	ssh -nq $dest "test -f /etc/systemd/system/slurmctld.service" && ssh -nq $dest "systemctl restart slurmctld" && echo "slurmctld restarted"
 	ssh -nq $dest "test -f /etc/systemd/system/slurmdbd.service" && ssh -nq $dest "systemctl restart slurmdbd" && echo "slurmdbd restarted"
+        echo ""
 
 done < ~/hosts
 sinfo
+scontrol show partition
