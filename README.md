@@ -24,7 +24,7 @@ sudo hostnamectl set-hostname samsung-slurm-controller
 sudo hostnamectl set-hostname samsung-s1
 ```
 
-## Modify `.ssh/config` for controller node
+## Modify `.ssh/config` for controller node for target-node
 ```
 Host controller
   Hostname 10.158.20.10
@@ -36,3 +36,9 @@ Host samsung-s1
   User root
   Port 22
 ```
+
+# Usage:
+
+*./slurmify <command> <target-node>*
+
+Use the command: node_config to generate entries from slurm.conf and gres.conf

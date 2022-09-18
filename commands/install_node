@@ -9,6 +9,12 @@ select yn in "Yes" "No"; do
     esac
 done
 
+echo "Setting timezone and creating users..."
+sleep 1
+ssh $1 "timedatectl set-timezone Asia/Manila"
+ssh $1 'adduser -u 1001 munge --disabled-password --gecos ""'
+ssh $1 'adduser -u 1002 slurm --disabled-password --gecos ""'
+
 echo "Installing and starting munge on $1..."
 sleep 2
 ssh $1 "apt update; apt -y install libmunge-dev libmunge2 munge hwloc libhwloc-dev; apt autoremove -y"
@@ -60,3 +66,9 @@ echo "Switching node to idle state..."
 sleep 1
 ssh $1 "scontrol update nodename=$1 state=idle"
 ssh $1 "sinfo"
+
+echo "Cgroups allow memory limitations from SLURM jobs and users to be implemented"
+sleep 1
+ssh $1 "sed -i 's/GRUB_CMDLINE_LINUX=\"\"/GRUB_CMDLINE_LINUX=\"cgroup_enable=memory swapaccount=1\"/' /etc/default/grub"
+ssh $1 "update-grub"
+echo "Please reboot $1"

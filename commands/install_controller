@@ -10,6 +10,12 @@ select yn in "Yes" "No"; do
     esac
 done
 
+echo "Setting timezone and creating users..."
+sleep 1
+ssh $1 "timedatectl set-timezone Asia/Manila"
+ssh $1 'adduser -u 1001 munge --disabled-password --gecos ""'
+ssh $1 'adduser -u 1002 slurm --disabled-password --gecos ""'
+
 echo "Installing and starting munge on $1..."
 #sleep 2
 ssh $1 "apt update; apt -y install libmunge-dev libmunge2 munge hwloc libhwloc-dev; apt autoremove -y"
