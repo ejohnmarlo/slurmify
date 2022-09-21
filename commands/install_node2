@@ -1,0 +1,68 @@
+#/bin/bash
+echo "Install Slurm on $1"
+
+echo "This will install slurm on $1. Make sure a controller and .deb exists"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes ) break;;
+        No ) exit;;
+    esac
+done
+
+echo "Setting timezone and creating users..."
+sleep 1
+ssh $1 "timedatectl set-timezone Asia/Manila"
+ssh $1 'adduser -u 1001 munge --disabled-password --gecos ""'
+ssh $1 'adduser -u 1002 slurm --disabled-password --gecos ""'
+
+echo "Installing and starting munge on $1..."
+sleep 2
+ssh $1 "apt update -y && apt install munge -y && apt install vim -y && apt install build-essential -y && apt install git -y && apt-get install mariadb-server -y && apt install wget -y"
+echo "Transferring munge.key from controller to $1..."
+sleep 1
+scp /etc/munge/munge.key $1:/etc/munge/
+ssh $1 "systemctl enable --now munge"
+ssh $1 "systemctl restart munge"
+echo "Testing munge..."
+sleep 1
+ssh $1 "munge -n | unmunge"
+echo "Testing munge from controller to $1..."
+sleep 2
+munge -n | ssh $1 unmunge
+
+ssh $1 "apt install slurmd slurm-client -y"
+
+echo "Copying slurm configurations from controller to $1..."
+sleep 1
+scp /etc/hosts $1:/etc/hosts
+scp /etc/slurm-llnl/slurm.conf $1:/etc/slurm-llnl/
+scp /etc/slurm-llnl/gres.conf $1:/etc/slurm-llnl/
+scp /etc/slurm-llnl/cgroup_allowed_devices_file.conf $1:/etc/slurm-llnl/
+scp /etc/slurm-llnl/cgroup.conf $1:/etc/slurm-llnl/
+
+
+echo "Restart slurm services..."
+sleep 1
+ssh $1 "systemctl daemon-reload"
+ssh $1 "systemctl enable --now slurmd"
+ssh $1 "systemctl restart slurmd"
+
+echo "Switching node to idle state..."
+sleep 1
+ssh $1 "scontrol update nodename=$1 state=idle"
+ssh $1 "sinfo"
+
+echo "Cgroups allow memory limitations from SLURM jobs and users to be implemented"
+sleep 1
+ssh $1 "sed -i 's/GRUB_CMDLINE_LINUX=\"\"/GRUB_CMDLINE_LINUX=\"cgroup_enable=memory swapaccount=1\"/' /etc/default/grub"
+ssh $1 "update-grub"
+
+echo "Adding cron entries..."
+sleep 1
+POWERUP="@reboot root scontrol update nodename=$(ssh -q $1 "cat /etc/hostname" state=POWER_UP)"
+RESUME="@reboot root scontrol update nodename=$(ssh -q $1 "cat /etc/hostname" state=RESUME)"
+ssh $1 "echo $POWERUP | sudo tee -a /etc/crontab"
+ssh $1 "echo $RESUME | sudo tee -a /etc/crontab"
+echo "Please reboot $1"
+
+

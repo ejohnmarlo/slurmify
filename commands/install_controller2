@@ -1,0 +1,43 @@
+#/bin/bash
+echo "Install Slurm on Controller"
+
+echo "This will install slurm on the controller node"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes ) break;;
+        No ) exit;;
+    esac
+done
+
+echo "Setting timezone and creating users..."
+sleep 1
+ssh $1 "timedatectl set-timezone Asia/Manila"
+ssh $1 'adduser -u 1001 munge --disabled-password --gecos ""'
+ssh $1 'adduser -u 1002 slurm --disabled-password --gecos ""'
+
+echo "Installing and starting munge on $1..."
+#sleep 2
+
+ssh $1 "apt update -y && apt install munge -y && apt install vim -y && apt install build-essential -y && apt install git -y && apt-get install mariadb-server -y && apt install wget -y"
+
+ssh $1 "systemctl enable --now munge"
+echo "Testing munge..."
+sleep 1
+ssh $1 "munge -n | unmunge"
+
+ssh $1 "apt install slurmd slurm-client slurmctld -y"
+
+echo "Copying configuration files..."
+sleep 1
+scp config2/slurm.conf /etc/slurm-llnl/
+scp config2/gres.conf /etc/slurm-llnl/
+scp config2/cgroup.conf /etc/slurm-llnl/
+scp config2/cgroup_allowed_devices_file.conf /etc/slurm-llnl/
+
+ssh $1 "chmod 644 /etc/slurm-llnl/*.conf"
+ssh $1 "chown slurm:root /etc/slurm-llnl/*.conf"
+
+echo "Restart slurm services..."
+ssh $1 "systemctl daemon-reload"
+ssh $1 "systemctl enable --now slurmctld"
+ssh $1 "systemctl restart slurmctld"

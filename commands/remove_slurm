@@ -21,6 +21,9 @@ ssh $1 "kill -9 $(pidof slurmctld)"
 ssh $1 "kill -9 $(pidof slurmdbd)"
 ssh $1 "kill -9 $(pidof slurmdbd)"
 
+echo "Removing services..."
+ssh $1 "rm -rf /etc/systemd/system/slurm*"
+
 echo -n "Removing directories..."
 sleep 2 && echo "done"
 ssh $1 "rm -rf /etc/slurm* /var/spool/slurm* /var/log/slurm*"

@@ -1,0 +1,34 @@
+#/bin/bash
+
+echo "This will sync config files to all compute nodes"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes ) break;;
+        No ) exit;;
+    esac
+done
+
+#cat /etc/hosts | grep -i '.' | grep -v '#\|:' | awk '{ print $2}' | awk '! /localhost/' | xargs -I{} ssh {} "ip addr"
+cat /etc/hosts | grep -i '.' | grep -v '#\|:' | awk '{ print $2}' | awk '! /localhost/' > ~/hosts
+while IFS= read -r dest; do 
+	echo "Syncing $dest..."
+	scp -q /etc/hosts $dest:/etc/hosts #Change /etc/hosts from "127.0.0.1 hostname" to "127.0.0.1 localhost" 
+	scp -q /etc/munge/munge.key $dest:/etc/munge/
+        scp -q /etc/slurm-llnl/gres.conf $dest:/etc/slurm-llnl/
+	scp -q /etc/slurm-llnl/slurm.conf $dest:/etc/slurm-llnl/
+	scp -q /etc/slurm-llnl/cgroup_allowed_devices_file.conf $dest:/etc/slurm-llnl/
+	scp -q /etc/slurm-llnl/cgroup.conf $dest:/etc/slurm-llnl/
+
+	echo "Restarting slurm services..."
+	ssh -nq $dest "systemctl daemon-reload"
+        ssh -nq $dest "systemctl restart slurmd"
+        ssh -nq $dest "systemctl restart slurmctld"
+       
+	#ssh -nq $dest "test -f /etc/systemd/system/slurmd.service" && ssh -nq $dest "systemctl restart slurmd" && echo "slurmd restarted"
+	#ssh -nq $dest "test -f /etc/systemd/system/slurmctld.service" && ssh -nq $dest "systemctl restart slurmctld" && echo "slurmctld restarted"
+	#ssh -nq $dest "test -f /etc/systemd/system/slurmdbd.service" && ssh -nq $dest "systemctl restart slurmdbd" && echo "slurmdbd restarted"
+        echo ""
+
+done < ~/hosts
+sinfo
+scontrol show partition

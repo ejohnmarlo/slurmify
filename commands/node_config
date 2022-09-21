@@ -8,15 +8,17 @@ echo "---"
 for i in $(ssh -q $1 'lspci | grep -i nvidia | grep -v Audio | sed "s/ //g" | cut -d : -f 1')
         do
 	CPUAFFINITY=$(ssh -q $1 "cat /sys/class/pci_bus/0000:$i/cpulistaffinity")
-        echo "NodeName=$1 Name=gpu File=/dev/nvidia"$COUNT" CPUs=$CPUAFFINITY"
+        echo "NodeName=$(ssh -q $1 'cat /etc/hostname') Name=gpu File=/dev/nvidia"$COUNT" CPUs=$CPUAFFINITY"
         ((COUNT++))
         done
 
 echo "---"
 echo ""
 echo "Add line to end of slurm.conf:"
-echo "NodeName=$(ssh -q $1 'hostname -s') Gres=gpu:$COUNT Sockets=$SOCKETS CoresPerSocket=$CORESPERSOCKET ThreadsPerCore=$THREADSPERCORE State=UNKNOWN"
+echo "NodeName=$(ssh -q $1 'cat /etc/hostname') Gres=gpu:$COUNT Sockets=$SOCKETS CoresPerSocket=$CORESPERSOCKET ThreadsPerCore=$THREADSPERCORE State=UNKNOWN"
 
 echo ""
 echo "Using slurmd -C:"
-ssh -q $1 "slurmd -C | head -n 1"
+#ssh -q $1 "slurmd -C | head -n 1"
+RFIRST=$(ssh -q $1 "slurmd -C | cut -f1 -d' ' --complement | head -n 1")
+echo "NodeName=$(ssh -q $1 'cat /etc/hostname') $RFIRST"

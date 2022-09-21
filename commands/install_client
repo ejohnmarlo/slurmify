@@ -45,7 +45,7 @@ ssh $1 "chown slurm /var/spool/slurm/d"
 
 echo "Copying slurm configurations from controller to $1..."
 sleep 1
-scp /etc/hosts $1:/etc/hosts
+#scp /etc/hosts $1:/etc/hosts #Don't need /etc/hosts make sure controller has ip in slurm.conf
 scp /etc/slurm/slurm.conf $1:/etc/slurm/
 scp /etc/slurm/gres.conf $1:/etc/slurm/
 scp /etc/slurm/cgroup_allowed_devices_file.conf $1:/etc/slurm/

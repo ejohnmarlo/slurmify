@@ -1,0 +1,40 @@
+#/bin/bash
+echo "Install Slurm on $1"
+
+echo "This will install slurm on $1. Make sure a controller and .deb exists"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes ) break;;
+        No ) exit;;
+    esac
+done
+
+echo "Setting timezone and creating users..."
+sleep 1
+ssh $1 "timedatectl set-timezone Asia/Manila"
+ssh $1 'adduser -u 1001 munge --disabled-password --gecos ""'
+ssh $1 'adduser -u 1002 slurm --disabled-password --gecos ""'
+
+echo "Installing and starting munge on $1..."
+sleep 2
+ssh $1 "apt update -y && apt install munge -y && apt install vim -y && apt install build-essential -y && apt install git -y && apt-get install mariadb-server -y && apt install wget -y"
+echo "Transferring munge.key from controller to $1..."
+sleep 1
+scp /etc/munge/munge.key $1:/etc/munge/
+ssh $1 "systemctl enable --now munge"
+ssh $1 "systemctl restart munge"
+echo "Testing munge..."
+sleep 1
+ssh $1 "munge -n | unmunge"
+echo "Testing munge from controller to $1..."
+sleep 2
+munge -n | ssh $1 unmunge
+
+ssh $1 "apt install slurm-client -y"
+
+echo "Copying slurm configurations from controller to $1..."
+sleep 1
+scp /etc/hosts $1:/etc/hosts
+scp /etc/slurm-llnl/slurm.conf $1:/etc/slurm-llnl/
+scp /etc/slurm-llnl/cgroup.conf $1:/etc/slurm-llnl/
+
