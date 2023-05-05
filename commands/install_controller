@@ -18,7 +18,7 @@ ssh $1 'adduser -u 1002 slurm --disabled-password --gecos ""'
 
 echo "Installing and starting munge on $1..."
 #sleep 2
-ssh $1 "apt update; apt -y install libmunge-dev libmunge2 munge hwloc libhwloc-dev; apt autoremove -y"
+ssh $1 "apt update; apt -y install libmunge-dev libmunge2 munge hwloc libhwloc-dev environment-modules; apt autoremove -y"
 ssh $1 "systemctl enable --now munge"
 echo "Testing munge..."
 sleep 1
