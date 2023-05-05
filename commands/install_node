@@ -17,7 +17,7 @@ ssh $1 'adduser -u 1002 slurm --disabled-password --gecos ""'
 
 echo "Installing and starting munge on $1..."
 sleep 2
-ssh $1 "apt update; apt -y install libmunge-dev libmunge2 munge hwloc libhwloc-dev; apt autoremove -y"
+ssh $1 "apt update; apt -y install libmunge-dev libmunge2 munge hwloc libhwloc-dev environment-modules; apt autoremove -y"
 echo "Transferring munge.key from controller to $1..."
 sleep 1
 scp /etc/munge/munge.key $1:/etc/munge/
