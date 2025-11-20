@@ -37,8 +37,18 @@ Host samsung-s1
   Port 22
 ```
 
+## Allow root SSH login and transfer SSH pubkey
+```
+ssh-keygen root@10.158.20.10
+```
 # Usage:
 
 *./slurmify <command> <target-node>*
 
 Use the command: node_config to generate entries from slurm.conf and gres.conf
+
+# Build Slurm
+
+*./slurmify build_slurm <target_node>*
+
+Edit source URL and version number for desired version
