@@ -1,7 +1,7 @@
 #/bin/bash
 echo "Install Slurm on Controller"
 SLURMDBPASS=slurmdbpass
-SLURMDEB="slurm-25.11.0_1.0_amd64.deb""
+SLURMDEB="slurm-25.11.0_1.0_amd64.deb"
 
 echo "This will install slurm on the controller node"
 select yn in "Yes" "No"; do
