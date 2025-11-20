@@ -1,6 +1,7 @@
 #/bin/bash
 echo "Install Slurm on Controller"
 SLURMDBPASS=slurmdbpass
+SLURMDEB="slurm-25.11.0_1.0_amd64.deb""
 
 echo "This will install slurm on the controller node"
 select yn in "Yes" "No"; do
@@ -32,6 +33,8 @@ ssh $1 "apt update; apt -y install libmariadbd-dev mariadb-server; apt autoremov
 ssh $1 "systemctl enable --now mariadb"
 echo "Setting up database..."
 #sleep 1
+ssh $1 "mysql -u root -e 'DROP DATABASE IF EXISTS slurm_acct_db;'"
+ssh $1 "mysql -u root -e \"DROP USER IF EXISTS 'slurm'@'localhost';\""
 ssh $1 "mysql -u root -e 'create database slurm_acct_db;'"
 ssh $1 "mysql -u root -e 'create user 'slurm'@'localhost';'"
 ssh $1 "mysql -u root -e 'set password for 'slurm'@'localhost' = password('\''$SLURMDBPASS'\'');'"
@@ -42,8 +45,7 @@ ssh $1 "mysql -u root -e 'flush privileges;'"
 echo "Choose slurm deb..."
 sleep 2
 ssh $1 "find . -type f -name "*.deb""
-read -p "Enter the SLURM version you want to install [ex. slurm-22.05.3_1.0_amd64.deb] : " SLURMDEB
-SLURMDEB="slurm-22.05.3_1.0_amd64.deb"
+read -p "Enter the SLURM version you want to install [ex. slurm-25.11.0_1.0_amd64.deb] : " SLURMDEB
 
 echo "Installing slurm deb..."
 sleep 2
