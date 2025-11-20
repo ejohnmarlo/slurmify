@@ -14,7 +14,7 @@ done
 
 echo "Installing prerequisites on $1..."
 sleep 1
-ssh $1 "apt update; apt install -y git gcc make build-essential ruby ruby-dev libmunge-dev libmunge2 munge hwloc libhwloc-dev hdf5-tools libhdf5-dev man2html freeipmi libfreeipmi-dev libibmad-dev libibumad-dev lua5.3 liblua5.3-dev mariadb-server libmariadb-dev libpam0g libpam0g-dev numactl libnuma-dev readline-common libreadline-dev rrdtool librrd-dev gir1.2-gtk-2.0 libssl-dev libhttp-parser-dev"
+ssh $1 "apt update; apt install -y git gcc make build-essential ruby ruby-dev libmunge-dev libmunge2 munge hwloc libhwloc-dev hdf5-tools libhdf5-dev man2html freeipmi libfreeipmi-dev libibmad-dev libibumad-dev lua5.3 liblua5.3-dev mariadb-server libmariadb-dev libpam0g libpam0g-dev numactl libnuma-dev readline-common libreadline-dev rrdtool librrd-dev gir1.2-gtk-2.0 libssl-dev libhttp-parser-dev libsystemd-dev"
 echo "Installing fpm..."
 sleep 1
 ssh $1 "gem install fpm"
