@@ -26,7 +26,7 @@ ssh $1 "tar xvjf $SLURM_VERSION.tar.bz2"
 
 echo "Building slurm..."
 sleep 1
-ssh $1 "./$SLURM_VERSION/configure --prefix=/tmp/slurm-build --sysconfdir=/etc/slurm --enable-pam --with-pam_dir=/lib/x86_64-linux-gnu/security/ --without-shared-libslurm --with-http_parser"
+ssh $1 "./$SLURM_VERSION/configure --prefix=/tmp/slurm-build --sysconfdir=/etc/slurm --enable-pam --with-pam_dir=/lib/x86_64-linux-gnu/security/ --without-shared-libslurm --with-cgroup=systemd --with-http_parser"
 ssh $1 "make"
 sleep 1
 ssh $1 "make contrib"
